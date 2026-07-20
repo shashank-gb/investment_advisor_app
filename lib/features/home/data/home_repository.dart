@@ -15,42 +15,6 @@ class HomeRepository {
 
   final Dio _dio;
 
-  Future<List<FundCategory>> getCategories() async {
-    if (AppConfig.useMockData) {
-      await Future<void>.delayed(const Duration(milliseconds: 400));
-      return const [
-        FundCategory(id: 'equity', name: 'Equity', description: 'Long-term growth'),
-        FundCategory(id: 'debt', name: 'Debt', description: 'Stable returns'),
-        FundCategory(id: 'hybrid', name: 'Hybrid', description: 'Balanced approach'),
-        FundCategory(id: 'elss', name: 'ELSS', description: 'Tax saving funds'),
-        FundCategory(id: 'index', name: 'Index', description: 'Market tracking'),
-      ];
-    }
-
-    final response = await _dio.get(ApiEndpoints.fundCategories);
-    final list = response.data['data'] as List<dynamic>;
-    return list.map((e) => FundCategory.fromJson(e as Map<String, dynamic>)).toList();
-  }
-
-  Future<List<MutualFund>> getTopFunds(String categoryId) async {
-    if (AppConfig.useMockData) {
-      await Future<void>.delayed(const Duration(milliseconds: 500));
-      return _mockFunds.where((f) => f.category.toLowerCase() == categoryId).toList()
-        ..sort((a, b) => b.returns1Y.compareTo(a.returns1Y));
-    }
-
-    try {
-      final response = await _dio.get(
-        ApiEndpoints.topFunds,
-        queryParameters: {'category': categoryId, 'limit': 10},
-      );
-      final list = response.data['data'] as List<dynamic>;
-      return list.map((e) => MutualFund.fromJson(e as Map<String, dynamic>)).toList();
-    } on DioException catch (e) {
-      throw ApiClient.parseError(e);
-    }
-  }
-
   Future<List<MarketIndex>> getMarketIndexes() async {
     if (AppConfig.useMockData) {
       await Future<void>.delayed(const Duration(milliseconds: 300));
@@ -61,9 +25,13 @@ class HomeRepository {
       ];
     }
 
-    final response = await _dio.get(ApiEndpoints.marketIndexes);
-    final list = response.data['data'] as List<dynamic>;
-    return list.map((e) => MarketIndex.fromJson(e as Map<String, dynamic>)).toList();
+    try {
+      final response = await _dio.get(ApiEndpoints.marketIndexes);
+      final list = response.data['data'] as List<dynamic>;
+      return list.map((e) => MarketIndex.fromJson(e as Map<String, dynamic>)).toList();
+    } on DioException catch (e) {
+      throw ApiClient.parseError(e);
+    }
   }
 
   Future<List<ContentItem>> getBlogs() async {
@@ -122,84 +90,4 @@ class HomeRepository {
     final list = response.data['data'] as List<dynamic>;
     return list.map((e) => ContentItem.fromJson(e as Map<String, dynamic>)).toList();
   }
-
-  static const _mockFunds = [
-    MutualFund(
-      id: 'mf1',
-      name: 'Bluechip Growth Fund',
-      amc: 'HDFC AMC',
-      category: 'equity',
-      nav: 842.35,
-      returns1Y: 22.4,
-      returns3Y: 18.2,
-      riskLevel: 'Very High',
-      minInvestment: 500,
-    ),
-    MutualFund(
-      id: 'mf2',
-      name: 'Midcap Opportunities',
-      amc: 'Axis AMC',
-      category: 'equity',
-      nav: 156.80,
-      returns1Y: 28.1,
-      returns3Y: 21.5,
-      riskLevel: 'Very High',
-      minInvestment: 500,
-    ),
-    MutualFund(
-      id: 'mf3',
-      name: 'Corporate Bond Fund',
-      amc: 'ICICI AMC',
-      category: 'debt',
-      nav: 45.20,
-      returns1Y: 8.2,
-      returns3Y: 7.5,
-      riskLevel: 'Moderate',
-      minInvestment: 1000,
-    ),
-    MutualFund(
-      id: 'mf4',
-      name: 'Short Duration Fund',
-      amc: 'SBI AMC',
-      category: 'debt',
-      nav: 32.15,
-      returns1Y: 7.1,
-      returns3Y: 6.8,
-      riskLevel: 'Low to Moderate',
-      minInvestment: 1000,
-    ),
-    MutualFund(
-      id: 'mf5',
-      name: 'Balanced Advantage Fund',
-      amc: 'Kotak AMC',
-      category: 'hybrid',
-      nav: 78.90,
-      returns1Y: 14.5,
-      returns3Y: 12.3,
-      riskLevel: 'Moderately High',
-      minInvestment: 500,
-    ),
-    MutualFund(
-      id: 'mf6',
-      name: 'Tax Saver ELSS Fund',
-      amc: 'Mirae AMC',
-      category: 'elss',
-      nav: 112.45,
-      returns1Y: 19.8,
-      returns3Y: 16.2,
-      riskLevel: 'Very High',
-      minInvestment: 500,
-    ),
-    MutualFund(
-      id: 'mf7',
-      name: 'Nifty 50 Index Fund',
-      amc: 'UTI AMC',
-      category: 'index',
-      nav: 198.30,
-      returns1Y: 20.1,
-      returns3Y: 17.0,
-      riskLevel: 'Very High',
-      minInvestment: 500,
-    ),
-  ];
 }

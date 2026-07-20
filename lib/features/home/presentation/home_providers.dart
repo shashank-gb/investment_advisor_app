@@ -1,14 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../funds/data/funds_repository.dart';
+import '../../funds/domain/funds_models.dart';
 import '../data/home_repository.dart';
 import '../domain/home_models.dart';
 
 final categoriesProvider = FutureProvider<List<FundCategory>>((ref) {
-  return ref.watch(homeRepositoryProvider).getCategories();
+  return ref.watch(fundsRepositoryProvider).getCategories();
 });
 
 final topFundsProvider = FutureProvider.family<List<MutualFund>, String>((ref, categoryId) {
-  return ref.watch(homeRepositoryProvider).getTopFunds(categoryId);
+  return ref.watch(fundsRepositoryProvider).getTopFunds(categoryId);
 });
 
 final marketIndexesProvider = FutureProvider<List<MarketIndex>>((ref) {

@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/async_state_widgets.dart';
-import '../../home/domain/home_models.dart';
+import '../../../core/widgets/mutual_fund_card.dart';
+import 'package:mf_app/features/funds/domain/funds_models.dart';
 import 'watchlist_providers.dart';
 
 class WatchlistScreen extends ConsumerStatefulWidget {
@@ -170,7 +171,7 @@ class _SearchResults extends StatelessWidget {
           itemCount: funds.length,
           itemBuilder: (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: _FundListTile(fund: funds[index]),
+            child: MutualFundCard(fund: funds[index]),
           ),
         );
       },
@@ -203,7 +204,7 @@ class _WatchlistTab extends ConsumerWidget {
           itemCount: items.length,
           itemBuilder: (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: _FundListTile(fund: items[index].fund, showBookmark: true),
+            child: MutualFundCard(fund: items[index].fund),
           ),
         );
       },
@@ -216,52 +217,4 @@ class _WatchlistTab extends ConsumerWidget {
   }
 }
 
-class _FundListTile extends StatelessWidget {
-  const _FundListTile({required this.fund, this.showBookmark = false});
-
-  final MutualFund fund;
-  final bool showBookmark;
-
-  @override
-  Widget build(BuildContext context) {
-    final isPositive = fund.returns1Y >= 0;
-
-    return Card(
-      child: ListTile(
-        title: Text(fund.name, style: const TextStyle(fontWeight: FontWeight.w500)),
-        subtitle: Text('${fund.amc} · ${fund.category}'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '₹${fund.nav.toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  '${isPositive ? '+' : ''}${fund.returns1Y.toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isPositive ? AppColors.positive : AppColors.negative,
-                  ),
-                ),
-              ],
-            ),
-            if (showBookmark) ...[
-              const SizedBox(width: 8),
-              Icon(
-                Icons.bookmark,
-                color: AppColors.primary.withValues(alpha: 0.7),
-                size: 20,
-              ),
-            ],
-          ],
-        ),
-        onTap: () {},
-      ),
-    );
-  }
-}
+// Deleted _FundListTile since we use MutualFundCard now

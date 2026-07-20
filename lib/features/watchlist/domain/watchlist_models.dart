@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
-
-import '../../home/domain/home_models.dart';
+import 'package:mf_app/features/funds/domain/funds_models.dart';
 
 class WatchlistGroup extends Equatable {
   const WatchlistGroup({

@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../home/domain/home_models.dart';
-import '../data/watchlist_repository.dart';
-import '../domain/watchlist_models.dart';
+import 'package:mf_app/features/funds/domain/funds_models.dart';
+import 'package:mf_app/features/watchlist/data/watchlist_repository.dart';
+import 'package:mf_app/features/watchlist/domain/watchlist_models.dart';
 
 final watchlistGroupsProvider = FutureProvider<List<WatchlistGroup>>((ref) {
   return ref.watch(watchlistRepositoryProvider).getGroups();

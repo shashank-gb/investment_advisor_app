@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/async_state_widgets.dart';
+import '../../../core/widgets/mutual_fund_card.dart';
+import '../../funds/domain/funds_models.dart';
 import '../domain/home_models.dart';
 import 'home_providers.dart';
 
@@ -86,8 +89,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 padding: EdgeInsets.all(16),
                 child: LinearProgressIndicator(),
               ),
-              error: (e, _) => Padding(
-                padding: const EdgeInsets.all(16),
+              error: (e, _) => const Padding(
+                padding: EdgeInsets.all(16),
                 child: Text('Failed to load categories'),
               ),
             ),
@@ -96,8 +99,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             data: (funds) => SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) => Padding(
-                  padding: EdgeInsets.fromLTRB(16, index == 0 ? 8 : 4, 16, 4),
-                  child: _FundCard(fund: funds[index], rank: index + 1),
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                  child: MutualFundCard(
+                    fund: funds[index],
+                    rank: index + 1,
+                    variant: MutualFundCardVariant.compact,
+                  ),
                 ),
                 childCount: funds.length,
               ),
@@ -215,47 +222,109 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 120,
+    return InkWell(
+      onTap: () => context.push('/home/goals'),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        width: double.infinity,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.secondary,
-              AppColors.secondary,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
+          color: const Color(0xFFE3F2FD),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.blue.shade100),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
           children: [
-            Text(
-              goalContent.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'GOAL-BASED\nINVESTING.',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1A237E),
+                      height: 1.1,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const SizedBox(
+                    width: 220,
+                    child: Text(
+                      'PLAN YOUR FUTURE. CHOOSE A GOAL, RISK, AND GET TAILORED MF SUGGESTIONS.',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF546E7A),
+                        fontWeight: FontWeight.w600,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'START GOAL PLANNER',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF1A237E),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              goalContent.subtitle,
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            Positioned(
+              right: 20,
+              bottom: 20,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withValues(alpha: 0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.track_changes_rounded,
+                  size: 40,
+                  color: Color(0xFF1A237E),
+                ),
+              ),
             ),
           ],
         ),
-      )
+      ),
     );
   }
-
 }
 
 class _AdsCarousel extends StatelessWidget {
@@ -350,75 +419,6 @@ class _CategoryChips extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _FundCard extends StatelessWidget {
-  const _FundCard({required this.fund, required this.rank});
-
-  final MutualFund fund;
-  final int rank;
-
-  @override
-  Widget build(BuildContext context) {
-    final isPositive = fund.returns1Y >= 0;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-              child: Text(
-                '$rank',
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    fund.name,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    fund.amc,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '₹${fund.nav.toStringAsFixed(2)}',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  '${isPositive ? '+' : ''}${fund.returns1Y.toStringAsFixed(1)}% (1Y)',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isPositive ? AppColors.positive : AppColors.negative,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

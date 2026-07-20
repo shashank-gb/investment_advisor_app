@@ -5,6 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/auth_provider.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/signup_screen.dart';
+import '../../features/funds/presentation/fund_detail_screen.dart';
+import '../../features/goals/domain/goal_models.dart';
+import '../../features/goals/presentation/screens/goal_funds_screen.dart';
+import '../../features/goals/presentation/screens/goal_selection_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/portfolio/presentation/portfolio_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -38,6 +42,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/signup',
         builder: (context, state) => const SignupScreen(),
       ),
+      GoRoute(
+        path: '/funds/:id',
+        builder: (context, state) {
+          final fundId = state.pathParameters['id']!;
+          return FundDetailScreen(fundId: fundId);
+        },
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return MainShell(navigationShell: navigationShell);
@@ -48,6 +59,26 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/home',
                 builder: (context, state) => const HomeScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'goals',
+                    builder: (context, state) => const GoalSelectionScreen(),
+                    routes: [
+                      GoRoute(
+                        path: ':id',
+                        builder: (context, state) {
+                          final goalId = state.pathParameters['id']!;
+                          final extra = state.extra as ({InvestmentGoal goal, String risk})?;
+                          return GoalFundsScreen(
+                            goalId: goalId,
+                            risk: extra?.risk ?? 'MEDIUM',
+                            goal: extra?.goal,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),

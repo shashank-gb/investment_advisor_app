@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/network/api_client.dart';
-import '../../home/domain/home_models.dart';
+import 'package:mf_app/features/funds/domain/funds_models.dart';
 import '../domain/watchlist_models.dart';
 
 final watchlistRepositoryProvider = Provider<WatchlistRepository>((ref) {

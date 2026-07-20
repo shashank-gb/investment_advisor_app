@@ -12,6 +12,7 @@ class ApiEndpoints {
   // Home
   static const String fundCategories = '/funds/categories';
   static const String topFunds = '/funds/top-performing';
+  static const String fundDetail = '/funds/detail';
   static const String marketIndexes = '/market/indexes';
   static const String blogs = '/content/blogs';
   static const String ads = '/content/ads';
@@ -24,6 +25,10 @@ class ApiEndpoints {
   static const String watchlistGroups = '/watchlist/groups';
   static const String watchlistFunds = '/watchlist/funds';
   static const String fundSearch = '/funds/search';
+
+  // Goals
+  static const String goalsList = '/goals/list';
+  static const String goalFunds = '/goals/funds';
 
   // App design (remote theme/config)
   static const String appDesign = '/config/design';
