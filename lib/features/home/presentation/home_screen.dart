@@ -169,7 +169,7 @@ class _MarketIndexesStrip extends StatelessWidget {
     final formatter = NumberFormat('#,##0.00', 'en_IN');
 
     return SizedBox(
-      height: 105,
+      height: 115,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

@@ -15,7 +15,11 @@ class PortfolioScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final summaryAsync = ref.watch(portfolioSummaryProvider);
     final holdingsAsync = ref.watch(portfolioHoldingsProvider);
-    final currency = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    final currency = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹',
+      decimalDigits: 0,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Portfolio')),
@@ -30,7 +34,8 @@ class PortfolioScreen extends ConsumerWidget {
               return const EmptyStateView(
                 icon: Icons.pie_chart_outline,
                 title: 'No investments yet',
-                subtitle: 'Start a SIP or lump sum investment to build your portfolio.',
+                subtitle:
+                    'Start a SIP or lump sum investment to build your portfolio.',
               );
             }
 
@@ -38,7 +43,8 @@ class PortfolioScreen extends ConsumerWidget {
               slivers: [
                 SliverToBoxAdapter(
                   child: summaryAsync.when(
-                    data: (summary) => _SummaryCard(summary: summary, currency: currency),
+                    data: (summary) =>
+                        _SummaryCard(summary: summary, currency: currency),
                     loading: () => const Padding(
                       padding: EdgeInsets.all(16),
                       child: LinearProgressIndicator(),
@@ -53,13 +59,15 @@ class PortfolioScreen extends ConsumerWidget {
                       children: [
                         Text(
                           'Your Holdings',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const Spacer(),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.secondary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
@@ -80,8 +88,14 @@ class PortfolioScreen extends ConsumerWidget {
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      child: _HoldingCard(holding: holdings[index], currency: currency),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      child: _HoldingCard(
+                        holding: holdings[index],
+                        currency: currency,
+                      ),
                     ),
                     childCount: holdings.length,
                   ),
@@ -90,7 +104,8 @@ class PortfolioScreen extends ConsumerWidget {
               ],
             );
           },
-          loading: () => const LoadingView(message: 'Fetching your portfolio...'),
+          loading: () =>
+              const LoadingView(message: 'Fetching your portfolio...'),
           error: (e, _) => ErrorView(
             message: 'Could not load portfolio from BSE Star MF',
             onRetry: () {
@@ -130,7 +145,10 @@ class _SummaryCard extends StatelessWidget {
         children: [
           Text(
             'Current Value',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.85),
+              fontSize: 13,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -150,7 +168,8 @@ class _SummaryCard extends StatelessWidget {
               ),
               _SummaryMetric(
                 label: 'Returns',
-                value: '${isPositive ? '+' : ''}${currency.format(summary.totalReturns)}',
+                value:
+                    '${isPositive ? '+' : ''}${currency.format(summary.totalReturns)}',
                 valueColor: isPositive ? AppColors.accent : AppColors.negative,
               ),
               if (summary.xirr != null)
@@ -186,7 +205,10 @@ class _SummaryMetric extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 11,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
@@ -220,63 +242,78 @@ class _HoldingCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          holding.fundName,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          holding.amc,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        holding.fundName,
+                        currency.format(holding.currentValue),
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        holding.amc,
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        '${isPositive ? '+' : ''}${holding.returnsPercent.toStringAsFixed(2)}%',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isPositive
+                              ? AppColors.positive
+                              : AppColors.negative,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
+                ],
+              ),
+              const Divider(height: 20),
+              Row(
+                children: [
+                  _DetailChip(
+                    label: 'Units',
+                    value: holding.units.toStringAsFixed(3),
+                  ),
+                  const SizedBox(width: 12),
+                  _DetailChip(
+                    label: 'Invested',
+                    value: currency.format(holding.investedAmount),
+                  ),
+                  if (holding.folioNumber != null) ...[
+                    const Spacer(),
                     Text(
-                      currency.format(holding.currentValue),
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      '${isPositive ? '+' : ''}${holding.returnsPercent.toStringAsFixed(2)}%',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isPositive ? AppColors.positive : AppColors.negative,
-                        fontWeight: FontWeight.w500,
+                      'Folio: ${holding.folioNumber}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.textMuted,
                       ),
                     ),
                   ],
-                ),
-              ],
-            ),
-            const Divider(height: 20),
-            Row(
-              children: [
-                _DetailChip(label: 'Units', value: holding.units.toStringAsFixed(3)),
-                const SizedBox(width: 12),
-                _DetailChip(label: 'Invested', value: currency.format(holding.investedAmount)),
-                if (holding.folioNumber != null) ...[
-                  const Spacer(),
-                  Text(
-                    'Folio: ${holding.folioNumber}',
-                    style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-                  ),
                 ],
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 }
 
@@ -291,8 +328,14 @@ class _DetailChip extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
-        Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+        ),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        ),
       ],
     );
   }

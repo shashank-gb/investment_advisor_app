@@ -22,43 +22,53 @@ class _FundDetailScreenState extends ConsumerState<FundDetailScreen> {
   Widget build(BuildContext context) {
     final detailAsync = ref.watch(fundDetailProvider(widget.fundId));
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return LayoutBuilder(builder: (context, constraints) {
+      final width = constraints.maxWidth;
+      final isWide = width > 900;
+
+      return Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        leading: const BackButton(color: Colors.black),
-        title: const Row(
-          children: [
-            Icon(Icons.auto_graph, color: AppColors.primary, size: 20),
-            SizedBox(width: 8),
-            Text('FUND',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16)),
-          ],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: const BackButton(color: Colors.black),
+          title: const Row(
+            children: [
+              Icon(Icons.auto_graph, color: AppColors.primary, size: 20),
+              SizedBox(width: 8),
+              Text('FUND',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16)),
+            ],
+          ),
         ),
-      ),
-      body: detailAsync.when(
-        data: (detail) => LayoutBuilder(builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 900;
-          return _DetailContent(
+        body: detailAsync.when(
+          data: (detail) => _DetailContent(
             detail: detail,
             selectedPeriod: _selectedPeriod,
             isWide: isWide,
+            screenWidth: width,
             onPeriodChanged: (p) => setState(() => _selectedPeriod = p),
-          );
-        }),
-        loading: () => const LoadingView(message: 'Loading fund details...'),
-        error: (e, _) => ErrorView(
-          message: 'Failed to load fund details',
-          onRetry: () => ref.invalidate(fundDetailProvider(widget.fundId)),
+          ),
+          loading: () => const LoadingView(message: 'Loading fund details...'),
+          error: (e, _) => ErrorView(
+            message: 'Failed to load fund details',
+            onRetry: () => ref.invalidate(fundDetailProvider(widget.fundId)),
+          ),
         ),
-      ),
-      bottomNavigationBar: const _BottomActionButtons(),
-    );
+        bottomNavigationBar: _BottomActionButtons(screenWidth: width),
+      );
+    });
   }
+}
+
+double _fluidValue(double width, double minVal, double maxVal,
+    {double startWidth = 400, double endWidth = 1200}) {
+  if (width <= startWidth) return minVal;
+  if (width >= endWidth) return maxVal;
+  return minVal + (maxVal - minVal) * ((width - startWidth) / (endWidth - startWidth));
 }
 
 class _DetailContent extends StatelessWidget {
@@ -67,15 +77,20 @@ class _DetailContent extends StatelessWidget {
     required this.selectedPeriod,
     required this.onPeriodChanged,
     required this.isWide,
+    required this.screenWidth,
   });
 
   final FundDetail detail;
   final String selectedPeriod;
   final ValueChanged<String> onPeriodChanged;
   final bool isWide;
+  final double screenWidth;
 
   @override
   Widget build(BuildContext context) {
+    final headerSize = _fluidValue(screenWidth, 20, 32);
+    final amcSize = _fluidValue(screenWidth, 13, 16);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Center(
@@ -95,20 +110,20 @@ class _DetailContent extends StatelessWidget {
                         Text(
                           detail.fund.name,
                           style: TextStyle(
-                              fontSize: isWide ? 28 : 20,
+                              fontSize: headerSize,
                               fontWeight: FontWeight.w900,
                               letterSpacing: -0.5),
                         ),
                         Text(
                           detail.fund.amc,
                           style: TextStyle(
-                              color: Colors.grey, fontSize: isWide ? 16 : 13),
+                              color: Colors.grey, fontSize: amcSize),
                         ),
                       ],
                     ),
                   ),
                   _RiskBadge(
-                      risk: detail.fund.riskLevel ?? 'N/A', isWide: isWide),
+                      risk: detail.fund.riskLevel ?? 'N/A', screenWidth: screenWidth),
                 ],
               ),
               const SizedBox(height: 24),
@@ -129,7 +144,7 @@ class _DetailContent extends StatelessWidget {
                             points: detail.performanceChart,
                             selectedPeriod: selectedPeriod,
                             onPeriodChanged: onPeriodChanged,
-                            isWide: isWide,
+                            screenWidth: screenWidth,
                           ),
                         ],
                       ),
@@ -144,9 +159,9 @@ class _DetailContent extends StatelessWidget {
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 14)),
                           const SizedBox(height: 16),
-                          _MetricsGrid(detail: detail, isWide: isWide),
+                          _MetricsGrid(detail: detail, screenWidth: screenWidth),
                           const SizedBox(height: 24),
-                          _ExitLoadInfo(info: detail.exitLoad, isWide: isWide),
+                          _ExitLoadInfo(info: detail.exitLoad, screenWidth: screenWidth),
                         ],
                       ),
                     ),
@@ -161,14 +176,14 @@ class _DetailContent extends StatelessWidget {
                   points: detail.performanceChart,
                   selectedPeriod: selectedPeriod,
                   onPeriodChanged: onPeriodChanged,
-                  isWide: isWide,
+                  screenWidth: screenWidth,
                 ),
                 const SizedBox(height: 24),
                 const Text('KEY METRICS',
                     style:
                         TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 12),
-                _MetricsGrid(detail: detail, isWide: isWide),
+                _MetricsGrid(detail: detail, screenWidth: screenWidth),
               ],
               const SizedBox(height: 24),
               Row(
@@ -177,16 +192,16 @@ class _DetailContent extends StatelessWidget {
                   Text('PORTFOLIO HOLDINGS',
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: isWide ? 18 : 14)),
+                          fontSize: _fluidValue(screenWidth, 14, 20))),
                   const Icon(Icons.arrow_forward_ios,
                       size: 12, color: Colors.grey),
                 ],
               ),
               const SizedBox(height: 12),
-              _HoldingsList(holdings: detail.holdings, isWide: isWide),
+              _HoldingsList(holdings: detail.holdings, screenWidth: screenWidth),
               if (!isWide) ...[
                 const SizedBox(height: 24),
-                _ExitLoadInfo(info: detail.exitLoad, isWide: isWide),
+                _ExitLoadInfo(info: detail.exitLoad, screenWidth: screenWidth),
               ],
               const SizedBox(height: 40),
             ],
@@ -198,15 +213,18 @@ class _DetailContent extends StatelessWidget {
 }
 
 class _RiskBadge extends StatelessWidget {
-  const _RiskBadge({required this.risk, required this.isWide});
+  const _RiskBadge({required this.risk, required this.screenWidth});
   final String risk;
-  final bool isWide;
+  final double screenWidth;
 
   @override
   Widget build(BuildContext context) {
+    final hPadding = _fluidValue(screenWidth, 8, 14);
+    final vPadding = _fluidValue(screenWidth, 4, 8);
+    final fontSize = _fluidValue(screenWidth, 10, 13);
+
     return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: isWide ? 12 : 8, vertical: isWide ? 6 : 4),
+      padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
       decoration: BoxDecoration(
         color: Colors.red.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
@@ -215,7 +233,7 @@ class _RiskBadge extends StatelessWidget {
         risk.toUpperCase(),
         style: TextStyle(
             color: Colors.red,
-            fontSize: isWide ? 12 : 10,
+            fontSize: fontSize,
             fontWeight: FontWeight.w900),
       ),
     );
@@ -227,16 +245,18 @@ class _PerformanceChartCard extends StatelessWidget {
     required this.points,
     required this.selectedPeriod,
     required this.onPeriodChanged,
-    required this.isWide,
+    required this.screenWidth,
   });
 
   final List<ChartPoint> points;
   final String selectedPeriod;
   final ValueChanged<String> onPeriodChanged;
-  final bool isWide;
+  final double screenWidth;
 
   @override
   Widget build(BuildContext context) {
+    final chartHeight = _fluidValue(screenWidth, 180, 320);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -249,7 +269,7 @@ class _PerformanceChartCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: SizedBox(
-              height: isWide ? 300 : 180,
+              height: chartHeight,
               width: double.infinity,
               child: CustomPaint(
                 painter: _LineChartPainter(points: points),
@@ -275,7 +295,7 @@ class _PerformanceChartCard extends StatelessWidget {
                     child: Text(
                       p,
                       style: TextStyle(
-                        fontSize: isWide ? 12 : 10,
+                        fontSize: _fluidValue(screenWidth, 10, 13),
                         fontWeight: FontWeight.bold,
                         color: isSelected ? Colors.white : Colors.grey,
                       ),
@@ -351,29 +371,30 @@ class _LineChartPainter extends CustomPainter {
 }
 
 class _MetricsGrid extends StatelessWidget {
-  const _MetricsGrid({required this.detail, required this.isWide});
+  const _MetricsGrid({required this.detail, required this.screenWidth});
   final FundDetail detail;
-  final bool isWide;
+  final double screenWidth;
 
   @override
   Widget build(BuildContext context) {
+    final isWide = screenWidth > 900;
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: isWide ? 1 : 2,
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: isWide ? 4.0 : 2.2,
+      childAspectRatio: isWide ? 4.5 : 2.2,
       children: [
-        _MetricItem(label: 'NAV', value: '₹${detail.fund.nav}', isWide: isWide),
+        _MetricItem(label: 'NAV', value: '₹${detail.fund.nav}', screenWidth: screenWidth),
         _MetricItem(
-            label: 'AUM', value: '₹${detail.aum}', isWide: isWide),
+            label: 'AUM', value: '₹${detail.aum}', screenWidth: screenWidth),
         _MetricItem(
             label: 'EXPENSE RATIO',
             value: detail.expenseRatio,
-            isWide: isWide),
+            screenWidth: screenWidth),
         _MetricItem(
-            label: 'MIN SIP', value: '₹${detail.minSip}', isWide: isWide),
+            label: 'MIN SIP', value: '₹${detail.minSip}', screenWidth: screenWidth),
       ],
     );
   }
@@ -381,13 +402,16 @@ class _MetricsGrid extends StatelessWidget {
 
 class _MetricItem extends StatelessWidget {
   const _MetricItem(
-      {required this.label, required this.value, required this.isWide});
+      {required this.label, required this.value, required this.screenWidth});
   final String label;
   final String value;
-  final bool isWide;
+  final double screenWidth;
 
   @override
   Widget build(BuildContext context) {
+    final labelSize = _fluidValue(screenWidth, 9, 14);
+    final valueSize = _fluidValue(screenWidth, 16, 32);
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -401,13 +425,13 @@ class _MetricItem extends StatelessWidget {
         children: [
           Text(label,
               style: TextStyle(
-                  fontSize: isWide ? 11 : 9,
+                  fontSize: labelSize,
                   color: Colors.grey,
                   fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text(value,
               style: TextStyle(
-                  fontSize: isWide ? 22 : 16, fontWeight: FontWeight.w900)),
+                  fontSize: valueSize, fontWeight: FontWeight.w900)),
         ],
       ),
     );
@@ -415,12 +439,15 @@ class _MetricItem extends StatelessWidget {
 }
 
 class _HoldingsList extends StatelessWidget {
-  const _HoldingsList({required this.holdings, required this.isWide});
+  const _HoldingsList({required this.holdings, required this.screenWidth});
   final List<PortfolioHolding> holdings;
-  final bool isWide;
+  final double screenWidth;
 
   @override
   Widget build(BuildContext context) {
+    final iconSize = _fluidValue(screenWidth, 24, 34);
+    final nameSize = _fluidValue(screenWidth, 13, 16);
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -458,14 +485,14 @@ class _HoldingsList extends StatelessWidget {
                     child: Row(
                       children: [
                         Container(
-                          width: isWide ? 32 : 24,
-                          height: isWide ? 32 : 24,
+                          width: iconSize,
+                          height: iconSize,
                           decoration: BoxDecoration(
                               color: Colors.grey.shade100,
                               shape: BoxShape.circle),
                           child: Center(
                               child: Icon(Icons.business,
-                                  size: isWide ? 18 : 14, color: Colors.black)),
+                                  size: iconSize * 0.6, color: Colors.black)),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -476,10 +503,10 @@ class _HoldingsList extends StatelessWidget {
                               Text(h.name,
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: isWide ? 15 : 13)),
+                                      fontSize: nameSize)),
                               Text(h.companyName,
                                   style: TextStyle(
-                                      fontSize: isWide ? 13 : 11,
+                                      fontSize: nameSize - 2,
                                       color: Colors.grey)),
                             ],
                           ),
@@ -488,7 +515,7 @@ class _HoldingsList extends StatelessWidget {
                           child: Text('${h.weightage}%',
                               style: TextStyle(
                                   fontWeight: FontWeight.w900,
-                                  fontSize: isWide ? 15 : 13),
+                                  fontSize: nameSize),
                               textAlign: TextAlign.right),
                         ),
                       ],
@@ -507,32 +534,40 @@ class _HoldingsList extends StatelessWidget {
 }
 
 class _ExitLoadInfo extends StatelessWidget {
-  const _ExitLoadInfo({required this.info, required this.isWide});
+  const _ExitLoadInfo({required this.info, required this.screenWidth});
   final String info;
-  final bool isWide;
+  final double screenWidth;
 
   @override
   Widget build(BuildContext context) {
+    final titleSize = _fluidValue(screenWidth, 14, 18);
+    final bodySize = _fluidValue(screenWidth, 13, 16);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('EXIT LOAD',
             style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: isWide ? 16 : 14)),
+                fontWeight: FontWeight.bold, fontSize: titleSize)),
         const SizedBox(height: 8),
         Text(info,
             style: TextStyle(
-                fontSize: isWide ? 15 : 13, color: Colors.grey, height: 1.4)),
+                fontSize: bodySize, color: Colors.grey, height: 1.4)),
       ],
     );
   }
 }
 
 class _BottomActionButtons extends StatelessWidget {
-  const _BottomActionButtons();
+  const _BottomActionButtons({required this.screenWidth});
+  final double screenWidth;
 
   @override
   Widget build(BuildContext context) {
+    final vPadding = _fluidValue(screenWidth, 16, 24);
+    final fontSize = _fluidValue(screenWidth, 14, 18);
+    final containerMaxWidth = _fluidValue(screenWidth, 600, 1100, startWidth: 600, endWidth: 1400);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       decoration: BoxDecoration(
@@ -548,36 +583,36 @@ class _BottomActionButtons extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            constraints: const BoxConstraints(maxWidth: 600),
+            constraints: BoxConstraints(maxWidth: containerMaxWidth),
             child: Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: ElevatedButton(
                     onPressed: () {},
-                    style: OutlinedButton.styleFrom(
+                    style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(vertical: vPadding),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('START SIP',
-                        style: TextStyle(fontWeight: FontWeight.w900)),
+                    child: Text('START SIP',
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: fontSize)),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: OutlinedButton(
+                  child: ElevatedButton(
                     onPressed: () {},
-                    style: OutlinedButton.styleFrom(
+                    style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(vertical: vPadding),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('INVEST LUMPSUM',
-                        style: TextStyle(fontWeight: FontWeight.w900)),
+                    child: Text('INVEST LUMPSUM',
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: fontSize)),
                   ),
                 ),
               ],

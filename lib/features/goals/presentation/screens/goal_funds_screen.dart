@@ -33,60 +33,72 @@ class GoalFundsScreen extends ConsumerWidget {
           style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
         ),
       ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Recommended for ${goal?.title.toLowerCase() ?? "your objective"}',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _FilterChip(label: risk, icon: Icons.speed_rounded),
-                    const SizedBox(width: 8),
-                    const _FilterChip(label: 'Curated for you', icon: Icons.auto_awesome_outlined),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: fundsAsync.when(
-              data: (funds) => funds.isEmpty
-                  ? const Center(child: Text('No funds found matching your criteria.'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: funds.length,
-                      itemBuilder: (context, index) => MutualFundCard(
-                        fund: funds[index],
-                        variant: MutualFundCardVariant.detailed,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 800;
+          final double _ = isWide ? (constraints.maxWidth - 1000).clamp(40, double.infinity) / 2 : 0;
+
+          return Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Recommended for ${goal?.title.toLowerCase() ?? "your objective"}',
+                          style: const TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            _FilterChip(label: risk, icon: Icons.speed_rounded),
+                            const SizedBox(width: 8),
+                            const _FilterChip(label: 'Curated for you', icon: Icons.auto_awesome_outlined),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: fundsAsync.when(
+                      data: (funds) => funds.isEmpty
+                          ? const Center(child: Text('No funds found matching your criteria.'))
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: funds.length,
+                              itemBuilder: (context, index) => MutualFundCard(
+                                fund: funds[index],
+                                variant: MutualFundCardVariant.detailed,
+                              ),
+                            ),
+                      loading: () => const LoadingView(message: 'Curating your portfolio...'),
+                      error: (e, _) => ErrorView(
+                        message: 'Could not load suggestions',
+                        onRetry: () => ref.invalidate(goalFundsProvider(GoalFundsArgs(goalId: goalId, riskProfile: risk))),
                       ),
                     ),
-              loading: () => const LoadingView(message: 'Curating your portfolio...'),
-              error: (e, _) => ErrorView(
-                message: 'Could not load suggestions',
-                onRetry: () => ref.invalidate(goalFundsProvider(GoalFundsArgs(goalId: goalId, riskProfile: risk))),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
