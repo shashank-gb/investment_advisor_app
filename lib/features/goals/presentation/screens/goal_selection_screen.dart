@@ -72,16 +72,16 @@ class _GoalSelectionScreenState extends ConsumerState<GoalSelectionScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: isWide ? 6 : 3,
+                          crossAxisCount: isWide ? 4 : 2,
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
-                          childAspectRatio: 0.9,
+                          childAspectRatio: isWide ? 1.4 : 1.1,
                         ),
                         itemCount: goals.length,
                         itemBuilder: (context, index) {
                           final goal = goals[index];
                           final isSelected = _selectedGoalId == goal.id;
-                          return _GoalTile(
+                          return _GoalCard(
                             goal: goal,
                             isSelected: isSelected,
                             onTap: () => setState(() => _selectedGoalId = goal.id),
@@ -252,8 +252,8 @@ class _GoalSelectionScreenState extends ConsumerState<GoalSelectionScreen> {
   }
 }
 
-class _GoalTile extends StatelessWidget {
-  const _GoalTile({
+class _GoalCard extends StatelessWidget {
+  const _GoalCard({
     required this.goal,
     required this.isSelected,
     required this.onTap,
@@ -280,40 +280,71 @@ class _GoalTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final baseColor = Color(int.parse(goal.colorHex));
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: isSelected ? const Color(0xFF1A237E) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? baseColor : Colors.white,
+          border: Border.all(
+            color: isSelected ? baseColor : Colors.grey.shade200,
+            width: isSelected ? 2 : 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: isSelected ? const Color(0xFF1A237E).withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.05),
+              color: isSelected ? baseColor.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              _getIcon(goal.iconData),
-              color: isSelected ? Colors.white : Colors.black87,
-              size: 32,
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.white.withValues(alpha: 0.2) : baseColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                _getIcon(goal.iconData),
+                color: isSelected ? Colors.white : baseColor,
+                size: 24,
+              ),
             ),
-            const SizedBox(height: 8),
+            const Spacer(),
             Text(
               goal.title,
               style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
                 color: isSelected ? Colors.white : Colors.black87,
               ),
-              textAlign: TextAlign.center,
             ),
+            const SizedBox(height: 4),
+            Text(
+              goal.description,
+              style: TextStyle(
+                fontSize: 11,
+                color: isSelected ? Colors.white.withValues(alpha: 0.8) : Colors.grey,
+                height: 1.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (isSelected) ...[
+              const SizedBox(height: 8),
+              const Align(
+                alignment: Alignment.bottomRight,
+                child: Icon(Icons.check_circle, color: Colors.white, size: 16),
+              ),
+            ],
           ],
         ),
       ),
