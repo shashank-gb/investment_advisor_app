@@ -13,7 +13,7 @@ class ApiEndpoints {
   static const String fundCategories = '/funds/categories';
   static const String topFunds = '/funds/top-performing';
   static const String fundDetail = '/funds/detail';
-  static const String marketIndexes = '/market/indexes';
+  static const String marketIndexes = 'https://www.nseindia.com/api/NextApi/apiClient?functionName=getIndexData&&type=All';
   static const String blogs = '/content/blogs';
   static const String ads = '/content/ads';
 
