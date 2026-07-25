@@ -10,10 +10,10 @@ class MarketIndex extends Equatable {
 
   factory MarketIndex.fromJson(Map<String, dynamic> json) {
     return MarketIndex(
-      name: json['name'] as String,
-      value: (json['value'] as num).toDouble(),
-      change: (json['change'] as num).toDouble(),
-      changePercent: (json['change_percent'] as num).toDouble(),
+      name: json['indexName'] as String,
+      value: (json['last'] as num).toDouble(),
+      change: ((json['last'] as num) - (json['previousClose'] as num)).toDouble(),
+      changePercent: (json['percChange'] as num).toDouble(),
     );
   }
 
