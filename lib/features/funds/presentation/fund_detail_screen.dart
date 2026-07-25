@@ -564,12 +564,18 @@ class _BottomActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vPadding = _fluidValue(screenWidth, 16, 24);
-    final fontSize = _fluidValue(screenWidth, 14, 18);
-    final containerMaxWidth = _fluidValue(screenWidth, 600, 1100, startWidth: 600, endWidth: 1400);
+    // Ensure containerMaxWidth never exceeds the actual screen width minus padding
+    final double horizontalPadding = 20.0;
+    final double maxAllowedWidth = screenWidth - (horizontalPadding * 2);
+    
+    // On wide screens, cap at 1100. On small screens, use available width.
+    final containerMaxWidth = screenWidth > 900 ? 1100.0 : maxAllowedWidth;
+    
+    final fontSize = _fluidValue(screenWidth, 13, 16);
+    final label = screenWidth > 500 ? 'Connect with Advisor' : 'Advisor';
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 12, horizontalPadding, 32),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -582,43 +588,72 @@ class _BottomActionButtons extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
+          ConstrainedBox(
             constraints: BoxConstraints(maxWidth: containerMaxWidth),
             child: Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
+                  child: ElevatedButton.icon(
                     onPressed: () {},
+                    icon: const Icon(Icons.support_agent, size: 20),
+                    label: Text(
+                      label,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: fontSize),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
+                      backgroundColor: const Color(0xFF1A237E),
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: vPadding),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
                     ),
-                    child: Text('START SIP',
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: fontSize)),
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: vPadding),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text('INVEST LUMPSUM',
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: fontSize)),
-                  ),
+                _SideAction(
+                  icon: Icons.analytics_outlined,
+                  onTap: () {},
+                ),
+                const SizedBox(width: 8),
+                _SideAction(
+                  icon: Icons.favorite_border,
+                  onTap: () {},
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SideAction extends StatelessWidget {
+  const _SideAction({
+    required this.icon,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A237E).withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF1A237E).withValues(alpha: 0.1)),
+        ),
+        child: Icon(icon, size: 22, color: const Color(0xFF1A237E)),
       ),
     );
   }
