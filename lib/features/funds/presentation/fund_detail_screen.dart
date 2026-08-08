@@ -564,15 +564,19 @@ class _BottomActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ensure containerMaxWidth never exceeds the actual screen width minus padding
-    final double horizontalPadding = 20.0;
-    final double maxAllowedWidth = screenWidth - (horizontalPadding * 2);
+    final isMobile = screenWidth < 600;
+    final double horizontalPadding = isMobile ? 12.0 : 20.0;
     
-    // On wide screens, cap at 1100. On small screens, use available width.
-    final containerMaxWidth = screenWidth > 900 ? 1100.0 : maxAllowedWidth;
-    
-    final fontSize = _fluidValue(screenWidth, 13, 16);
-    final label = screenWidth > 500 ? 'Connect with Advisor' : 'Advisor';
+    // Always respect available screen width
+    final containerMaxWidth = screenWidth > 900 ? 1100.0 : screenWidth - (horizontalPadding * 2);
+
+    String label = 'Connect with Advisor';
+    if (screenWidth < 500) {
+      label = 'Advisor';
+    }
+    if (screenWidth < 350) {
+      label = ''; 
+    }
 
     return Container(
       padding: EdgeInsets.fromLTRB(horizontalPadding, 12, horizontalPadding, 32),
@@ -596,32 +600,33 @@ class _BottomActionButtons extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () {},
                     icon: const Icon(Icons.support_agent, size: 20),
-                    label: Text(
-                      label,
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: fontSize),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    label: label.isEmpty 
+                      ? const SizedBox.shrink() 
+                      : Text(label,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A237E),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 _SideAction(
                   icon: Icons.analytics_outlined,
                   onTap: () {},
+                  isMobile: isMobile,
                 ),
                 const SizedBox(width: 8),
                 _SideAction(
                   icon: Icons.favorite_border,
                   onTap: () {},
+                  isMobile: isMobile,
                 ),
               ],
             ),
@@ -636,10 +641,12 @@ class _SideAction extends StatelessWidget {
   const _SideAction({
     required this.icon,
     required this.onTap,
+    required this.isMobile,
   });
 
   final IconData icon;
   final VoidCallback onTap;
+  final bool isMobile;
 
   @override
   Widget build(BuildContext context) {
@@ -647,7 +654,7 @@ class _SideAction extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isMobile ? 12 : 16),
         decoration: BoxDecoration(
           color: const Color(0xFF1A237E).withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
